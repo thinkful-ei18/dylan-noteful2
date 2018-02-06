@@ -1,4 +1,5 @@
 'use strict';
+const knex = require('../knex');
 
 const express = require('express');
 
@@ -15,7 +16,7 @@ const notes = simDB.initialize(data);
 // Get All (and search by query)
 /* ========== GET/READ ALL NOTES ========== */
 router.get('/notes', (req, res, next) => {
-  const { searchTerm } = req.query;
+  const searchTerm = req.query.searchTerm ?  req.query.searchTerm : '';
   /* 
   notes.filter(searchTerm)
     .then(list => {
@@ -23,6 +24,14 @@ router.get('/notes', (req, res, next) => {
     })
     .catch(err => next(err)); 
   */
+
+  knex
+    .select()
+    .from('notes')
+    .where('title', 'like', `%${searchTerm}%`)
+    .orderBy('id', 'asc')
+    .then(list => res.json(list))
+    .catch(err => next(err));
 });
 
 /* ========== GET/READ SINGLE NOTES ========== */
@@ -40,6 +49,19 @@ router.get('/notes/:id', (req, res, next) => {
     })
     .catch(err => next(err));
   */
+
+  knex
+    .select()
+    .from('notes')
+    .where({ id: noteId })
+    .then(item => {
+      if (item) {
+        res.json(item[0]);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
@@ -73,6 +95,19 @@ router.put('/notes/:id', (req, res, next) => {
     })
     .catch(err => next(err));
   */
+  knex('notes')
+    .where({ id: noteId })
+    .returning(['id', 'title', 'content'])
+    .update(updateObj)
+    .then(item => {
+      console.log(item);
+      if (item) {
+        res.json(item[0]);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 /* ========== POST/CREATE ITEM ========== */
@@ -96,6 +131,17 @@ router.post('/notes', (req, res, next) => {
     })
     .catch(err => next(err));
   */
+
+  knex('notes')
+    .returning(['id', 'title', 'content', 'created'])
+    .insert(newItem)
+    .then(note => {
+      if (note) {
+        res.json(note[0]);
+      } else {
+        next();
+      }
+    }).catch(err => next(err));
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
@@ -113,6 +159,17 @@ router.delete('/notes/:id', (req, res, next) => {
     })
     .catch(err => next(err));
   */
+  knex('notes')
+    .where({ id: id })
+    .del()
+    .then(count => {
+      if (count) {
+        res.status(204).end();
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 module.exports = router;
