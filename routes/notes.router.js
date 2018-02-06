@@ -30,7 +30,10 @@ router.get('/notes', (req, res, next) => {
     .from('notes')
     .where('title', 'like', `%${searchTerm}%`)
     .orderBy('id', 'asc')
-    .then(list => res.json(list))
+    .then(list => {
+      console.log(list);
+      res.json(list);
+    })
     .catch(err => next(err));
 });
 
