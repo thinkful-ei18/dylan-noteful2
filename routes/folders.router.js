@@ -53,4 +53,31 @@ router.post('/folders', (req, res, next) => {
     .catch(err => next(err));
 });
 
+router.put('/folders/:id', (req, res, next) => {
+  const folderId = req.params.id;
+  const { name } = req.body;
+  const updateFolder = { name };
+
+  if (!updateFolder.name) {
+    const err = new Error('Folder must have a name');
+    err.status = 400;
+    return next(err);
+  }
+
+  knex('folders')
+    .where({id: folderId})
+    .returning(['id', 'name'])
+    .update(updateFolder)
+    .then(folder => {
+      if (folder) {
+        res.json(folder[0]);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
+});
+
+router.delete('/folders/:id', )
+
 module.exports = router;
