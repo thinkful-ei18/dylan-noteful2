@@ -34,9 +34,9 @@ router.get('/notes', (req, res, next) => {
         this.where('title', 'like', `%${searchTerm}%`);
       }
     })
-    .orWhere(function() {
+    .where(function() {
       if (req.query.folderId) {
-
+        this.where('folder_id', req.query.folderId);
       }
     })
     .orderBy('notes.id', 'asc')
