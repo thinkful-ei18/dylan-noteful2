@@ -26,10 +26,20 @@ router.get('/notes', (req, res, next) => {
   */
 
   knex
-    .select()
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
     .from('notes')
-    .where('title', 'like', `%${searchTerm}%`)
-    .orderBy('id', 'asc')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .where(function(){
+      if (searchTerm){
+        this.where('title', 'like', `%${searchTerm}%`);
+      }
+    })
+    .orWhere(function() {
+      if (req.query.folderId) {
+
+      }
+    })
+    .orderBy('notes.id', 'asc')
     .then(list => {
       console.log(list);
       res.json(list);
@@ -54,9 +64,10 @@ router.get('/notes/:id', (req, res, next) => {
   */
 
   knex
-    .select()
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
     .from('notes')
-    .where({ id: noteId })
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .where('notes.id', `${noteId}`)
     .then(item => {
       if (item) {
         res.json(item[0]);
