@@ -36,3 +36,11 @@ const knex = require('../knex');
 //   .where({id: 1012})
 //   .del()
 //   .then(res => console.log(res));
+
+knex
+  .select()
+  .from('folders')
+  .where({id: 100})
+  .then(res => {
+    console.log(res[0]);
+  });
