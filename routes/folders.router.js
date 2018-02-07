@@ -78,6 +78,19 @@ router.put('/folders/:id', (req, res, next) => {
     .catch(err => next(err));
 });
 
-router.delete('/folders/:id', )
+router.delete('/folders/:id', (req, res, next) => {
+  const id = req.params.id;
+  knex('folders')
+    .where({id})
+    .del()
+    .then(length => {
+      if(length) {
+        res.status(204).end();
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
+});
 
 module.exports = router;
