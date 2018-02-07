@@ -126,9 +126,11 @@ router.put('/notes/:id', (req, res, next) => {
 
 /* ========== POST/CREATE ITEM ========== */
 router.post('/notes', (req, res, next) => {
-  const { title, content } = req.body;
+  const { title, content, folder_id } = req.body;
   
-  const newItem = { title, content };
+  const newItem = { title, content, folder_id };
+
+  let noteId;
   /***** Never trust users - validate input *****/
   if (!newItem.title) {
     const err = new Error('Missing `title` in request body');
@@ -147,15 +149,20 @@ router.post('/notes', (req, res, next) => {
   */
 
   knex('notes')
-    .returning(['id', 'title', 'content', 'created'])
+    .returning('id')
     .insert(newItem)
-    .then(note => {
-      if (note) {
-        res.json(note[0]);
-      } else {
-        next();
-      }
-    }).catch(err => next(err));
+    .then(([id]) => {
+      noteId = id;
+      return knex
+        .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .where('notes.id', noteId);
+    })
+    .then(([result]) => {
+      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+    })
+    .catch(err => next(err));
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
