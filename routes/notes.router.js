@@ -88,7 +88,8 @@ router.get('/notes/:id', (req, res, next) => {
     .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
     .where('notes.id', `${noteId}`)
     .then(item => {
-      if (item) {
+      console.log(item.length);
+      if (item.length >= 1) {
         const treeize = new Treeize();
         treeize.grow(item);
         const hydrated = treeize.getData();
