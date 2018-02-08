@@ -28,9 +28,9 @@ router.get('/tags/:id', (req, res, next) => {
     .select()
     .from('tags')
     .where({id})
-    .then(tag => {
+    .then(([tag]) => {
       if(tag){
-        res.json(tag[0]);
+        res.json(tag);
       } else{
         next();
       }
@@ -51,8 +51,8 @@ router.post('/tags', (req, res, next) => {
   knex('tags')
     .returning(['id', 'name'])
     .insert(newItem)
-    .then(tag => {
-      res.location(`${req.originalURrl}/${tag[0].id}`).status(201).json(tag[0]);
+    .then(([tag]) => {
+      res.location(`${req.originalURrl}/${tag.id}`).status(201).json(tag);
     })
     .catch(err => {
       if (err.code === UNIQUE_VIOLATION && err.constraint === 'tags_name_key') {
@@ -80,9 +80,9 @@ router.put('/tags/:id', (req, res, next) => {
     .returning(['id', 'name'])
     .where({id})
     .update(updateObj)
-    .then(item => {
+    .then(([item]) => {
       if (item) {
-        res.status(201).json(item[0]);
+        res.status(201).json(item);
       } else {
         next();
       }

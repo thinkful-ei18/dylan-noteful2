@@ -67,9 +67,9 @@ router.get('/notes/:id', (req, res, next) => {
     .from('notes')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .where('notes.id', `${noteId}`)
-    .then(item => {
+    .then(([item]) => {
       if (item) {
-        res.json(item[0]);
+        res.json(item);
       } else {
         next();
       }
