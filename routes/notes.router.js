@@ -19,6 +19,7 @@ const notes = simDB.initialize(data);
 /* ========== GET/READ ALL NOTES ========== */
 router.get('/notes', (req, res, next) => {
   const searchTerm = req.query.searchTerm ?  req.query.searchTerm : '';
+  const tagId = req.query.tagId;
   /* 
   notes.filter(searchTerm)
     .then(list => {
@@ -33,14 +34,24 @@ router.get('/notes', (req, res, next) => {
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
     .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
-    .where(function(){
-      if (searchTerm){
+    .where(function() {
+      if (searchTerm) {
         this.where('title', 'like', `%${searchTerm}%`);
       }
     })
     .where(function() {
       if (req.query.folderId) {
         this.where('folder_id', req.query.folderId);
+      }
+    })
+    .where(function() {
+      if (tagId) {
+        const subQuery = knex
+          .select('notes.id')
+          .from('notes')
+          .innerJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+          .where('notes_tags.tag_id', tagId);
+        this.whereIn('notes.id', subQuery);
       }
     })
     .orderBy('notes.id', 'asc')
