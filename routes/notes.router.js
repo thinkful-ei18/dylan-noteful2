@@ -150,7 +150,7 @@ router.put('/notes/:id', (req, res, next) => {
 
 /* ========== POST/CREATE ITEM ========== */
 router.post('/notes', (req, res, next) => {
-  const { title, content, folder_id } = req.body;
+  const { title, content, folder_id, tags } = req.body;
   
   const newItem = { title, content, folder_id };
 
@@ -177,14 +177,25 @@ router.post('/notes', (req, res, next) => {
     .insert(newItem)
     .then(([id]) => {
       noteId = id;
+      const tagsInsert = tags.map(tagId => ({note_id: noteId, tag_id: tagId}));
+      return knex.insert(tagsInsert)
+        .into('notes_tags');
+    }).then(item => {
       return knex
-        .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
+        .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+        .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
         .where('notes.id', noteId);
     })
-    .then(([result]) => {
-      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+    .then(result => {
+      if (result) {
+        const treeize = new Treeize();
+        treeize.grow(result);
+        const hydrated = treeize.getData();
+        res.location(`${req.originalUrl}/${result.id}`).status(201).json(hydrated);
+      }
     })
     .catch(err => next(err));
 });
