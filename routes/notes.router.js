@@ -19,7 +19,6 @@ const notes = simDB.initialize(data);
 /* ========== GET/READ ALL NOTES ========== */
 router.get('/notes', (req, res, next) => {
   const searchTerm = req.query.searchTerm ?  req.query.searchTerm : '';
-  const tagId = req.query.tagId;
   /* 
   notes.filter(searchTerm)
     .then(list => {
@@ -45,12 +44,12 @@ router.get('/notes', (req, res, next) => {
       }
     })
     .where(function() {
-      if (tagId) {
+      if (req.query.tagId) {
         const subQuery = knex
           .select('notes.id')
           .from('notes')
           .innerJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
-          .where('notes_tags.tag_id', tagId);
+          .where('notes_tags.tag_id', req.query.tagId);
         this.whereIn('notes.id', subQuery);
       }
     })

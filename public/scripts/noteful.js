@@ -15,6 +15,8 @@ const noteful = (function() {
 
     const folderSelect = generateFolderSelect(store.folders);
     $('.js-note-folder-entry').html(folderSelect);
+    const tagsList = generateTagsList(store.tags, store.currentQuery);
+    $('.js-tags-list').html(tagsList);
   }
 
   /**
@@ -62,6 +64,20 @@ const noteful = (function() {
       item => `<option value="${item.id}">${item.name}</option>`
     );
     return '<option value="">Select Folder:</option>' + notes.join('');
+  }
+
+  function generateTagsList(list, currQuery) {
+    const showAllItem = `
+      <li data-id="" class="js-tag-item ${!currQuery.tagId ? 'active' : ''}">
+        <a href="#" class="name js-tag-link">All</a>
+      </li>`;
+
+    const listItems = list.map(item => `
+      <li data-id="${item.id}" class="js-tag-item ${currQuery.tagId === item.id ? 'active' : ''}">
+        <a href="#" class="name js-tag-link">${item.name}</a>
+        <button class="removeBtn js-tag-delete">X</button>
+      </li>`);
+    return [showAllItem, ...listItems].join('');
   }
 
   /**
