@@ -16,7 +16,25 @@ router.get('/tags', (req, res, next) => {
     .then(tags => {
       res.json(tags);
       
-    });
+    })
+    .catch(err => next(err));
+});
+
+router.get('/tags/:id', (req, res, next) => {
+  const id = req.params.id;
+
+  knex
+    .select()
+    .from('tags')
+    .where({id})
+    .then(tag => {
+      if(tag){
+        res.json(tag[0]);
+      } else{
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 module.exports = router;
