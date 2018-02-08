@@ -63,4 +63,33 @@ router.post('/tags', (req, res, next) => {
     });
 });
 
+router.put('/tags/:id', (req, res, next) => {
+  const id = req.params.id;
+
+  const {name} = req.body;
+
+  if (!name) {
+    const err = new Error('Name must be present');
+    err.status = 400;
+    return next(err);
+  }
+
+  const updateObj = {name};
+  
+  knex('tags')
+    .returning(['id', 'name'])
+    .where({id})
+    .update(updateObj)
+    .then(item => {
+      res.status(201).json(item[0]);
+    })
+    .catch(err =>  {
+      if (err.code === UNIQUE_VIOLATION && err.constraint === 'tags_name_key') {
+        err = new Error('Tag name is already being used');
+        err.status = 409;
+      }
+      next(err);
+    });
+});
+
 module.exports = router;
