@@ -174,6 +174,7 @@ router.put('/notes/:id', (req, res, next) => {
 /* ========== POST/CREATE ITEM ========== */
 router.post('/notes', (req, res, next) => {
   const { title, content, folder_id, tags } = req.body;
+  console.log(tags);
   
   const newItem = { title, content, folder_id };
 
@@ -199,11 +200,14 @@ router.post('/notes', (req, res, next) => {
     .returning('id')
     .insert(newItem)
     .then(([id]) => {
+      
       noteId = id;
       const tagsInsert = tags.map(tagId => ({note_id: noteId, tag_id: tagId}));
+      console.log(res.body);
       return knex.insert(tagsInsert)
         .into('notes_tags');
     }).then(item => {
+      console.log('GETTING HERE');
       return knex
         .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
         .from('notes')
