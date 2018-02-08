@@ -10,7 +10,6 @@ const noteful = (function() {
     editForm.find('.js-note-title-entry').val(store.currentNote.title);
     editForm.find('.js-note-content-entry').val(store.currentNote.content);
     editForm.find('.js-note-folder-entry').val(store.currentNote.folder_id);
-
     const folderList = generateFolderList(store.folders, store.currentQuery);
     $('.js-folders-list').html(folderList);
 
@@ -121,7 +120,8 @@ const noteful = (function() {
       const noteObj = {
         id: store.currentNote.id,
         title: editForm.find('.js-note-title-entry').val(),
-        content: editForm.find('.js-note-content-entry').val()
+        content: editForm.find('.js-note-content-entry').val(),
+        folder_id: editForm.find('.js-note-folder-entry').val()
       };
 
       if (store.currentNote.id) {
@@ -188,8 +188,55 @@ const noteful = (function() {
 
       api.search('/v2/notes', store.currentQuery).then(response => {
         store.notes = response;
+        console.log(store.notes);
         render();
       });
+    });
+  }
+
+  function handleNewFolderSubmit() {
+    $('.js-new-folder-form').on('submit', event => {
+      event.preventDefault();
+
+      const newFolderName = $('.js-new-folder-entry').val();
+      api
+        .create('/v2/folders', { name: newFolderName })
+        .then(() => {
+          $('.js-new-folder-entry').val();
+          return api.search('/v2/folders');
+        })
+        .then(response => {
+          store.folders = response;
+          render();
+        })
+        .catch(err => {
+          $('.js-error-message').text(err.responseJSON.message);
+        });
+    });
+  }
+
+  function handleFolderDeleteClick() {
+    $('.js-folders-list').on('click', '.js-folder-delete', event => {
+      event.preventDefault();
+
+      const folderId = getFolderIdFromElement(event.currentTarget);
+
+      if (folderId === store.currentQuery.folderId) {
+        store.currentQuery.folderId = null;
+      }
+      if (folderId === store.currentNote.folder_id) {
+        store.currentNote = {};
+      }
+
+      api
+        .remove(`/v2/folders/${folderId}`)
+        .then(() => {
+          return api.search('/v2/folders');
+        })
+        .then(response => {
+          store.folders = response;
+          render();
+        });
     });
   }
 
@@ -201,6 +248,8 @@ const noteful = (function() {
     handleNoteStartNewSubmit();
     handleNoteDeleteClick();
     handleFolderClick();
+    handleNewFolderSubmit();
+    handleFolderDeleteClick();
   }
 
   // This object contains the only exposed methods from this module:

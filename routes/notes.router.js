@@ -41,7 +41,6 @@ router.get('/notes', (req, res, next) => {
     })
     .orderBy('notes.id', 'asc')
     .then(list => {
-      console.log(list);
       res.json(list);
     })
     .catch(err => next(err));
