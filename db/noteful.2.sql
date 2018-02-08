@@ -1,9 +1,9 @@
 --`psql -U dev -f ./db/noteful.2.sql -d noteful-app`
 SELECT CURRENT_DATE;
+DROP TABLE IF EXISTS notes_tags;
 DROP TABLE IF EXISTS notes;
 DROP TABLE IF EXISTS folders;
 DROP TABLE IF EXISTS tags;
-DROP TABLE IF EXISTS notes_tags;
 CREATE TABLE folders
 (
   id serial PRIMARY KEY,
@@ -19,7 +19,7 @@ CREATE TABLE notes
 CREATE TABLE tags
 (
   id serial PRIMARY KEY,
-  name text NOT NULL
+  name text NOT NULL UNIQUE
 );
 CREATE TABLE notes_tags
 (

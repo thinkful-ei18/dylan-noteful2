@@ -81,7 +81,11 @@ router.put('/tags/:id', (req, res, next) => {
     .where({id})
     .update(updateObj)
     .then(item => {
-      res.status(201).json(item[0]);
+      if (item) {
+        res.status(201).json(item[0]);
+      } else {
+        next();
+      }
     })
     .catch(err =>  {
       if (err.code === UNIQUE_VIOLATION && err.constraint === 'tags_name_key') {
@@ -90,6 +94,22 @@ router.put('/tags/:id', (req, res, next) => {
       }
       next(err);
     });
+});
+
+router.delete('/tags/:id', (req, res, next) => {
+  const {id} = req.params;
+
+  knex('tags')
+    .where({id})
+    .del()
+    .then(length => {
+      if (length) {
+        res.status(204).end();
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 module.exports = router;
