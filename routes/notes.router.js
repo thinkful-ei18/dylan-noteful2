@@ -48,8 +48,6 @@ router.get('/notes', (req, res, next) => {
       const treeize = new Treeize();
       treeize.grow(list);
       const hydrated = treeize.getData();
-      console.log(hydrated);
-      
       res.json(hydrated);
     })
     .catch(err => next(err));
@@ -72,13 +70,18 @@ router.get('/notes/:id', (req, res, next) => {
   */
 
   knex
-    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
     .from('notes')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+    .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
     .where('notes.id', `${noteId}`)
-    .then(([item]) => {
+    .then(item => {
       if (item) {
-        res.json(item);
+        const treeize = new Treeize();
+        treeize.grow(item);
+        const hydrated = treeize.getData();
+        res.json(hydrated);
       } else {
         next();
       }
