@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const knex = require('../knex');
+const { UNIQUE_VIOLATION } = require('pg-error-constants');
 
 router.get('/tags', (req, res, next) => {
   const searchTerm = req.query.searchTerm ? req.query.searchTerm : '';
@@ -35,6 +36,31 @@ router.get('/tags/:id', (req, res, next) => {
       }
     })
     .catch(err => next(err));
+});
+
+router.post('/tags', (req, res, next) => {
+  const {name} = req.body;
+  if (!name) {
+    const err = new Error('Name must be present');
+    err.status = 400;
+    return next(err);
+  }
+
+  const newItem = { name };
+
+  knex('tags')
+    .returning(['id', 'name'])
+    .insert(newItem)
+    .then(tag => {
+      res.location(`${req.originalURrl}/${tag[0].id}`).status(201).json(tag[0]);
+    })
+    .catch(err => {
+      if (err.code === UNIQUE_VIOLATION && err.constraint === 'tags_name_key') {
+        err = new Error('Tags name is already taken');
+        err.status = 409;
+      }
+      next(err);
+    });
 });
 
 module.exports = router;
