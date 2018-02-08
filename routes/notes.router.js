@@ -6,6 +6,8 @@ const express = require('express');
 // Create an router instance (aka "mini-app")
 const router = express.Router();
 
+const Treeize = require('treeize');
+
 // TEMP: Simple In-Memory Database
 /* 
 const data = require('../db/notes');
@@ -26,9 +28,11 @@ router.get('/notes', (req, res, next) => {
   */
 
   knex
-    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
     .from('notes')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+    .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
     .where(function(){
       if (searchTerm){
         this.where('title', 'like', `%${searchTerm}%`);
@@ -41,7 +45,12 @@ router.get('/notes', (req, res, next) => {
     })
     .orderBy('notes.id', 'asc')
     .then(list => {
-      res.json(list);
+      const treeize = new Treeize();
+      treeize.grow(list);
+      const hydrated = treeize.getData();
+      console.log(hydrated);
+      
+      res.json(hydrated);
     })
     .catch(err => next(err));
 });
