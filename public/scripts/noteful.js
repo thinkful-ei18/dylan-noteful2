@@ -33,8 +33,8 @@ const noteful = (function() {
     const listItems = list.map(
       item => `
       <li data-id="${item.id}" class="js-note-element ${
-        currNote.id === item.id ? 'active' : ''
-      }">
+    currNote.id === item.id ? 'active' : ''
+  }">
         <a href="#" class="name js-note-link">${item.title}</a>
         <button class="removeBtn js-note-delete-button">X</button>
         <div class="metadata">
@@ -53,16 +53,16 @@ const noteful = (function() {
   function generateFolderList(list, currQuery) {
     const showAllItem = `
       <li data-id="" class="js-folder-item ${
-        !currQuery.folderId ? 'active' : ''
-      }">
+  !currQuery.folderId ? 'active' : ''
+  }">
         <a href="#" class="name js-folder-link">All</a>
       </li>`;
 
     const listItems = list.map(
       item => `
       <li data-id="${item.id}" class="js-folder-item ${
-        currQuery.folderId === item.id ? 'active' : ''
-      }">
+    currQuery.folderId === item.id ? 'active' : ''
+  }">
         <a href="#" class="name js-folder-link">${item.name}</a>
         <button class="removeBtn js-folder-delete">X</button>
       </li>`
@@ -87,8 +87,8 @@ const noteful = (function() {
     const listItems = list.map(
       item => `
       <li data-id="${item.id}" class="js-tag-item ${
-        currQuery.tagId === item.id ? 'active' : ''
-      }">
+    currQuery.tagId === item.id ? 'active' : ''
+  }">
         <a href="#" class="name js-tag-link">${item.name}</a>
         <button class="removeBtn js-tag-delete">X</button>
       </li>`
@@ -137,7 +137,6 @@ const noteful = (function() {
       const noteId = getNoteIdFromElement(event.currentTarget);
 
       api.details(`/v2/notes/${noteId}`).then(response => {
-        console.log(response);
         store.currentNote = response[0];
         render();
       });
@@ -173,7 +172,6 @@ const noteful = (function() {
         tags: [parseInt(editForm.find('.js-note-tags-entry').val())]
       };
 
-      console.log(noteObj.tags);
       if (store.currentNote.id) {
         
         api
@@ -239,7 +237,6 @@ const noteful = (function() {
 
       api.search('/v2/notes', store.currentQuery).then(response => {
         store.notes = response;
-        console.log(store.notes);
         render();
       });
     });
