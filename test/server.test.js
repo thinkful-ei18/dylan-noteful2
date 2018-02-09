@@ -99,7 +99,7 @@ describe('GET /v2/notes', function() {
       });
   });
 
-  it.only('should return correct search results for a searchTerm query', function() {
+  it('should return correct search results for a searchTerm query', function() {
     let res;
     return chai
       .request(app)
@@ -121,15 +121,24 @@ describe('GET /v2/notes', function() {
       });
   });
 
-  it('should return an empty array for an incorrect query', function() {
+  it.only('should return an empty array for an incorrect query', function() {
+    let res;
     return chai
       .request(app)
       .get('/v2/notes?searchTerm=Not%20a%20Valid%20Search')
-      .then(function(res) {
+      .then(function(_res) {
+        res = _res;
         expect(res).to.have.status(200);
         expect(res).to.be.json;
         expect(res.body).to.be.a('array');
         expect(res.body).to.have.length(0);
+        return knex
+          .select()
+          .from('notes')
+          .where('title', 'like', '%Not a Valid Search%');
+      })
+      .then(result => {
+        expect(res.body).to.deep.equal(result);
       });
   });
 });
