@@ -224,27 +224,28 @@ describe('GET /v2/notes/:id', function() {
 });
 
 describe('POST /v2/notes', function() {
-  it('should create and return a new item when provided valid data', function() {
+  it('should create and return a new item when provided valid data', function () {
     const newItem = {
-      title: 'The best article about cats ever!',
-      content:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
-      folder_id: 101,
-      tags: [2]
+      'title': 'The best article about cats ever!',
+      'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
+      'tags': []
     };
-    return chai
-      .request(app)
+    let body;
+    return chai.request(app)
       .post('/v2/notes')
       .send(newItem)
-      .then(function(res) {
+      .then(function (res) {
+        body = res.body[0];
         expect(res).to.have.status(201);
-        expect(res).to.be.json;
-        expect(res.body[0]).to.be.a('object');
-        expect(res.body[0]).to.include.keys('id', 'title', 'content');
-
-        expect(res.body[0].title).to.equal(newItem.title);
-        expect(res.body[0].content).to.equal(newItem.content);
         expect(res).to.have.header('location');
+        expect(res).to.be.json;
+        expect(body).to.be.a('object');
+        expect(body).to.include.keys('id', 'title', 'content');
+        return knex.select().from('notes').where('id', body.id);
+      })
+      .then(([data]) => {
+        expect(body.title).to.equal(data.title);
+        expect(body.content).to.equal(data.content);
       });
   });
 
@@ -278,19 +279,29 @@ describe('PUT /v2/notes/:id', function() {
       content: 'woof woof',
       tags: []
     };
+    let body;
     return chai
       .request(app)
       .put('/v2/notes/1001')
       .send(updateItem)
       .then(function(res) {
+        body = res.body[0];
         expect(res).to.have.status(200);
         expect(res).to.be.json;
-        expect(res.body[0]).to.be.a('object');
-        expect(res.body[0]).to.include.keys('id', 'title', 'content');
+        expect(body).to.be.a('object');
+        expect(body).to.include.keys('id', 'title', 'content');
 
-        expect(res.body[0].id).to.equal(1001);
-        expect(res.body[0].title).to.equal(updateItem.title);
-        expect(res.body[0].content).to.equal(updateItem.content);
+        expect(body.id).to.equal(1001);
+        expect(body.title).to.equal(updateItem.title);
+        expect(body.content).to.equal(updateItem.content);
+        return knex
+          .select()
+          .from('notes')
+          .where('id', body.id);
+      })
+      .then(([result]) => {
+        expect(result.id).to.equal(body.id);
+        expect(result.content).to.equal(body.content);
       });
   });
 
@@ -314,14 +325,14 @@ describe('PUT /v2/notes/:id', function() {
       });
   });
 
-  it('should return an error when missing "title" field', function() {
+  it.only('should return an error when missing "title" field', function() {
     const updateItem = {
       foo: 'bar'
     };
     const spy = chai.spy();
     return chai
       .request(app)
-      .put('/v2/notes/9999')
+      .put('/v2/notes/1001')
       .send(updateItem)
       .then(spy)
       .then(() => {
@@ -333,6 +344,13 @@ describe('PUT /v2/notes/:id', function() {
         expect(res).to.be.json;
         expect(res.body).to.be.a('object');
         expect(res.body.message).to.equal('Missing `title` in request body');
+        return knex
+          .select()
+          .from('notes')
+          .where('id', 1001);
+      })
+      .then(([result]) => {
+        expect(result.title).to.equal('What the government doesn\'t want you to know about cats');
       });
   });
 });
@@ -344,6 +362,12 @@ describe('DELETE  /v2/notes/:id', function() {
       .delete('/v2/notes/1006')
       .then(function(res) {
         expect(res).to.have.status(204);
+        return knex
+          .select()
+          .from('notes');
+      })
+      .then(result => {
+        expect(result).to.have.length(9);
       });
   });
 
