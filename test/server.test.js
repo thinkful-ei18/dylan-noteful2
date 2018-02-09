@@ -33,7 +33,7 @@ describe('Environment', () => {
   });
 
   it('connection should be test database', () => {
-    expect(knex.client.connectionSettings.database).to.equal('noteful_test');
+    expect(knex.client.connectionSettings.database).to.equal('travis');
   });
 });
 
