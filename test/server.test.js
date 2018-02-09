@@ -121,7 +121,48 @@ describe('GET /v2/notes', function() {
       });
   });
 
-  it.only('should return an empty array for an incorrect query', function() {
+  it('should search by folder id', function() {
+    const dataPromise = knex
+      .select()
+      .from('notes')
+      .where('folder_id', 103)
+      .orderBy('notes.id');
+
+    const apiPromise = chai.request(app).get('/v2/notes?folderId=103');
+
+    return Promise.all([
+      dataPromise,
+      apiPromise
+    ]).then(function([data, res]) {
+      expect(res).to.have.status(200);
+      expect(res).to.be.json;
+      expect(res.body).to.be.a('array');
+      expect(res.body).to.have.length(2);
+      expect(res.body[0]).to.be.an('object');
+    });
+  });
+
+  it('should search by tag id', function() {
+    const dataPromise = knex
+      .select()
+      .from('notes')
+      .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+      .leftJoin('tags', 'notes_tags.tag_id', 'tags.id')
+      .where('tags.id', 1);
+    
+    const apiPromise = chai.request(app).get('/v2/notes?tagId=1');
+
+    return Promise.all([dataPromise, apiPromise]).then(function([data, res]){
+      expect(res).to.have.status(200);
+      expect(res).to.be.json;
+      expect(res.body).to.be.an('array');
+      expect(res.body).to.have.length(4);
+      expect(data).to.have.length(4);
+      expect(res.body[0].id).to.equal(data[0].note_id);
+    });
+  });
+
+  it('should return an empty array for an incorrect query', function() {
     let res;
     return chai
       .request(app)
@@ -145,16 +186,25 @@ describe('GET /v2/notes', function() {
 
 describe('GET /v2/notes/:id', function() {
   it('should return correct notes', function() {
+    let res;
     return chai
       .request(app)
       .get('/v2/notes/1000')
-      .then(function(res) {
+      .then(function(_res) {
+        res = _res;
         expect(res).to.have.status(200);
         expect(res).to.be.json;
         expect(res.body[0]).to.be.an('object');
         expect(res.body[0]).to.include.keys('id', 'title', 'content');
         expect(res.body[0].id).to.equal(1000);
         expect(res.body[0].title).to.equal('5 life lessons learned from cats');
+        return knex
+          .select()
+          .from('notes')
+          .where('id', 1000);
+      })
+      .then(result => {
+        expect(res.body[0].id).to.equal(result[0].id);
       });
   });
 
