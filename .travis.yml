@@ -5,3 +5,4 @@ services:
 
 before_script:
   - psql -c 'create database noteful_test;' -U postgres
+  - psql -U postgres -f ./db/seed/index.js noteful_test
