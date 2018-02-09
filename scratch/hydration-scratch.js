@@ -28,4 +28,4 @@ function hydrationStation(list){
   }
   return hydration;
 }
-console.log(hydrationStation(list));
+// console.log(hydrationStation(list));

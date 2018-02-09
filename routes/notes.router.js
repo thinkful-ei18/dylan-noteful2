@@ -19,6 +19,8 @@ const notes = simDB.initialize(data);
 /* ========== GET/READ ALL NOTES ========== */
 router.get('/notes', (req, res, next) => {
   const searchTerm = req.query.searchTerm ?  req.query.searchTerm : '';
+  const folderId = req.query.folderId ? req.query.folderId : '';
+  const tagId = req.query.tagId ? req.query.tagId : '';
   /* 
   notes.filter(searchTerm)
     .then(list => {
@@ -26,7 +28,6 @@ router.get('/notes', (req, res, next) => {
     })
     .catch(err => next(err)); 
   */
-
   knex
     .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
     .from('notes')
@@ -39,17 +40,18 @@ router.get('/notes', (req, res, next) => {
       }
     })
     .where(function() {
-      if (req.query.folderId) {
-        this.where('folder_id', req.query.folderId);
+      if (folderId) {
+        
+        this.where('folder_id', folderId);
       }
     })
     .where(function() {
-      if (req.query.tagId) {
+      if (tagId) {
         const subQuery = knex
           .select('notes.id')
           .from('notes')
           .innerJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
-          .where('notes_tags.tag_id', req.query.tagId);
+          .where('notes_tags.tag_id', tagId);
         this.whereIn('notes.id', subQuery);
       }
     })
@@ -60,7 +62,9 @@ router.get('/notes', (req, res, next) => {
       const hydrated = treeize.getData();
       res.json(hydrated);
     })
-    .catch(err => next(err));
+    .catch(err => {
+      next(err);
+    });
 });
 
 /* ========== GET/READ SINGLE NOTES ========== */
@@ -120,22 +124,23 @@ router.put('/notes/:id', (req, res, next) => {
     return next(err);
   }
 
-  /*
-  notes.update(noteId, updateObj)
-    .then(item => {
-      if (item) {
-        res.json(item);
-      } else {
-        next();
+  knex
+    .select()
+    .from('notes')
+    .where({id: noteId}).then(result => {
+      if (result.length === 0) {
+        const err = new Error('Invalid Id');
+        err.status = 404;
+        return next(err);
       }
-    })
-    .catch(err => next(err));
-  */
+    });
+
   knex('notes')
     .where({ id: noteId })
     .returning('id')
     .update(updateObj)
-    .then(() => {
+    .then((update) => {
+      
       return knex('notes_tags')
         .where('note_id', noteId)
         .del();
@@ -169,7 +174,7 @@ router.put('/notes/:id', (req, res, next) => {
       const treeize = new Treeize();
       treeize.grow(result);
       const hydrated = treeize.getData();
-      res.location(`${req.originalUrl}/${result.id}`).status(201).json(hydrated);
+      res.location(`${req.originalUrl}/${result.id}`).status(200).json(hydrated);
     })
     .catch(err => next(err));
 });
@@ -227,7 +232,9 @@ router.post('/notes', (req, res, next) => {
         res.location(`${req.originalUrl}/${result.id}`).status(201).json(hydrated);
       }
     })
-    .catch(err => next(err));
+    .catch(err => {
+      next(err);
+    });
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
