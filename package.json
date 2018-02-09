@@ -9,7 +9,7 @@
 	},
 	"main": "server.js",
 	"scripts": {
-		"start": "nodemon server.js",
+		"start": "server.js",
 		"test": "cross-env NODE_ENV=test nyc --reporter=lcov mocha --exit"
 	},
 	"dependencies": {
