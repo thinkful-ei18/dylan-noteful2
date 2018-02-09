@@ -135,7 +135,7 @@ router.put('/notes/:id', (req, res, next) => {
     .where({ id: noteId })
     .returning('id')
     .update(updateObj)
-    .then(([id]) => {
+    .then(() => {
       return knex('notes_tags')
         .where('note_id', noteId)
         .del();
@@ -150,12 +150,12 @@ router.put('/notes/:id', (req, res, next) => {
       }
       return id;
     })
-    .then(id => {
+    .then(() => {
       knex
         .select()
         .from('notes_tags')
         .where('note_id', noteId)
-        .then(result => {
+        .then(() => {
         });
       return knex
         .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
@@ -210,7 +210,7 @@ router.post('/notes', (req, res, next) => {
       } else {
         return id;
       }
-    }).then(item => {
+    }).then(() => {
       return knex
         .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folder name', 'tags.id as tags:id', 'tags.name as tags:name')
         .from('notes')
