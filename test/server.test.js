@@ -249,7 +249,7 @@ describe('POST /v2/notes', function() {
       });
   });
 
-  it.only('should return an error when missing "title" field', function() {
+  it('should return an error when missing "title" field', function() {
     const newItem = { foo: 'bar' };
     const spy = chai.spy();
     return chai
