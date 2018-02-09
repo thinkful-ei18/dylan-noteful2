@@ -249,10 +249,8 @@ describe('POST /v2/notes', function() {
       });
   });
 
-  it('should return an error when missing "title" field', function() {
-    const newItem = {
-      foo: 'bar'
-    };
+  it.only('should return an error when missing "title" field', function() {
+    const newItem = { foo: 'bar' };
     const spy = chai.spy();
     return chai
       .request(app)
@@ -268,6 +266,10 @@ describe('POST /v2/notes', function() {
         expect(res).to.be.json;
         expect(res.body).to.be.a('object');
         expect(res.body.message).to.equal('Missing `title` in request body');
+        return knex.select().from('notes');
+      })
+      .then(result => {
+        expect(result).to.have.length(10);
       });
   });
 });
@@ -325,7 +327,7 @@ describe('PUT /v2/notes/:id', function() {
       });
   });
 
-  it.only('should return an error when missing "title" field', function() {
+  it('should return an error when missing "title" field', function() {
     const updateItem = {
       foo: 'bar'
     };
